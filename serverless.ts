@@ -1,7 +1,6 @@
 import type { AWS } from '@serverless/typescript';
 
-// import hello from '@functions/hello';
-import app from '@functions/api';
+import functions from '@functions/index';
 
 const serverlessConfiguration: AWS = {
   service: 'ts-node-express',
@@ -13,7 +12,9 @@ const serverlessConfiguration: AWS = {
     region: 'ap-northeast-1',
     runtime: 'nodejs14.x',
     stage: 'prod',
-    timeout: 10,
+    timeout: 30,
+    memorySize: 1024,
+    endpointType: 'regional',
     lambdaHashingVersion: '20201221',
     apiGateway: {
       minimumCompressionSize: 1024,
@@ -23,10 +24,14 @@ const serverlessConfiguration: AWS = {
     environment: {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       NODE_OPTIONS: '--enable-source-maps --stack-trace-limit=1000',
+      PASSKEY: '253D3FB468A0E24677C28A624BE0F939',
+      AURORA_SECRET_ARN: '${self:custom.auroraSecretArn.all}',
+      AURORA_RESOURCE_ARN: '${self:custom.auroraResourceArn.all}',
+      MYSQL_DATABASE: '${self:custom.mySqlDatabase.all}',
     },
   },
   // import the function via paths
-  functions: { app },
+  functions: functions,
   package: { individually: true },
   custom: {
     esbuild: {
@@ -38,6 +43,15 @@ const serverlessConfiguration: AWS = {
       define: { 'require.resolve': undefined },
       platform: 'node',
       concurrency: 10,
+    },
+    auroraSecretArn: {
+      all: '${ssm:/ts-node-express/${sls:stage}/auroraSecretArn}',
+    },
+    auroraResourceArn: {
+      all: '${ssm:/ts-node-express/${sls:stage}/auroraResourceArn}',
+    },
+    mySqlDatabase: {
+      all: '${ssm:/ts-node-express/${sls:stage}/mySqlDatabase}',
     },
   },
 };

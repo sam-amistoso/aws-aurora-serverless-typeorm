@@ -41,7 +41,7 @@ const findUserToken = async (
       },
     },
   });
-  console.log({ findUserTokenValue: token });
+
   if (token) return token;
   else return null;
 };

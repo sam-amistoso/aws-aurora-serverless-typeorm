@@ -23,22 +23,22 @@ const handlerAuthenticated = async function (
 
     if (access_token) {
       const record = await findToken(access_token);
-
-      if (record) {
+      const user = record[0]?.user;
+      if (record && record.length && user) {
         const data: IAuthData = {
-          id: record.token_id,
-          ttl: record.token_ttl,
-          createdAt: record.token_createdAt,
-          scope: record.token_scope,
+          id: record[0].id,
+          ttl: record[0].ttl,
+          createdAt: record[0].createdAt,
+          scope: record[0].scope,
           user: {
-            id: record.users_id,
-            email: record.users_email,
-            name: record.users_name,
-            agency: record.users_agency,
-            account: record.users_account,
+            id: record[0].user.id,
+            email: record[0].user.email,
+            name: record[0].user.name,
+            agency: record[0].user.agency,
+            account: record[0].user.account,
           },
         };
-        // console.log('data:', data);
+
         const now = Date.now();
         const elapsedSeconds = now / 1000 - data.createdAt;
         const secondsToLive = data.ttl;

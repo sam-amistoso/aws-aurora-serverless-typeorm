@@ -6,8 +6,6 @@ import {
   onAuthErrorResponse,
   successResponse,
 } from '@libs/response';
-import { IAuthData } from '@interfaces/auth.interface';
-import { IUserLogin } from '@interfaces/login.interface';
 import { middyfy } from '@libs/lambda';
 import schema from './schema';
 import { compare } from 'bcryptjs';
@@ -37,39 +35,15 @@ const loginHandler: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
         accessToken.scope = 'login';
         accessToken.user = userInfo;
 
-        let token: IUserLogin | null = await findUserToken(userInfo.id);
-        if (typeof token === 'object' && token !== null) {
-          const data: IAuthData = {
-            id: token.token_id,
-            ttl: token.token_ttl,
-            createdAt: token.token_createdAt,
-            scope: token.token_scope,
-            user: {
-              id: token.users_id,
-              email: token.users_email,
-              name: token.users_name,
-              agency: token.users_agency,
-              account: token.users_account,
-            },
-          };
-
-          return successResponse({ data });
+        let token: AccessTokens[] | null = await findUserToken(userInfo.id);
+        if (token !== null && token.length) {
+          console.log('findUserToken:', token);
+          delete token[0].user.password;
+          return successResponse({ data: token[0] });
         } else {
           const newToken = await createToken(accessToken);
-          const data: IAuthData = {
-            id: newToken.id,
-            ttl: newToken.ttl,
-            createdAt: newToken.createdAt,
-            scope: newToken.scope,
-            user: {
-              id: newToken.user.id,
-              email: newToken.user.email,
-              name: newToken.user.name,
-              agency: newToken.user.agency,
-              account: newToken.user.account,
-            },
-          };
-          return successResponse({ data });
+          delete newToken.user.password;
+          return successResponse({ data: newToken });
         }
       } else {
         return onAuthErrorResponse('Login Error');

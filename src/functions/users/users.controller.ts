@@ -5,6 +5,18 @@ import {
   IUserSearchParams,
 } from '@functions/interfaces/users.interface';
 
+const userCol = [
+  'users.id',
+  'users.email',
+  'users.name',
+  'users.agency',
+  'users.account',
+  'users.workNumber',
+  'users.mobileNumber',
+  'users.createdAt',
+  'users.updatedAt',
+];
+
 const create = async (user: User): Promise<User> => {
   const userRepository = await (await getDBConnection()).getRepository(User);
   const newUser = await userRepository.save(user).catch((e) => {
@@ -35,8 +47,11 @@ const fetchById = async (userId: string): Promise<User> => {
 const fetchAll = async (params: IUserSearchParams): Promise<IUserFetchBody> => {
   const userRepository = await (await getDBConnection()).getRepository(User);
   const builder = userRepository.createQueryBuilder('users');
+  builder.select(userCol); // list of columns to return
+  builder.where('void = 0'); // return only active users
+
   if (params.keyword) {
-    builder.where('users.name LIKE :keyword', {
+    builder.orWhere('users.name LIKE :keyword', {
       keyword: `%${params.keyword}%`,
     });
   }

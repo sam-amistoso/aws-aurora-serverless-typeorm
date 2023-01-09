@@ -1,6 +1,5 @@
 import { getDBConnection } from 'src/db/db-manager';
 import { AccessTokens } from '@enties/index';
-import { IUserLogin } from '@interfaces/login.interface';
 
 const createToken = async (data: AccessTokens): Promise<AccessTokens> => {
   const tokenRepository = await (
@@ -13,32 +12,36 @@ const createToken = async (data: AccessTokens): Promise<AccessTokens> => {
   return createToken;
 };
 
-const findToken = async (id: string): Promise<IUserLogin | null> => {
+const findToken = async (id: string): Promise<AccessTokens[] | null> => {
   const tokenRepository = await (
     await getDBConnection()
   ).getRepository(AccessTokens);
 
-  const token: unknown = await tokenRepository
-    .createQueryBuilder('token')
-    .leftJoinAndSelect('users', 'users', 'users.id = token.userId')
-    .where('token.id = :id', { id })
-    .getRawOne();
+  const token = await tokenRepository.find({
+    relations: { user: true },
+    where: { id },
+  });
 
   if (token) return token;
   else return null;
 };
 
-const findUserToken = async (userId: string): Promise<IUserLogin | null> => {
+const findUserToken = async (
+  userId: string
+): Promise<AccessTokens[] | null> => {
   const tokenRepository = await (
     await getDBConnection()
   ).getRepository(AccessTokens);
 
-  const token = await tokenRepository
-    .createQueryBuilder('token')
-    .leftJoinAndSelect('users', 'users', 'token.userId = users.id')
-    .where('users.id = :userId', { userId })
-    .getRawOne();
-  // console.log({ findUserTokenValue: token });
+  const token = await tokenRepository.find({
+    relations: { user: true },
+    where: {
+      user: {
+        id: userId,
+      },
+    },
+  });
+  console.log({ findUserTokenValue: token });
   if (token) return token;
   else return null;
 };

@@ -26,7 +26,7 @@ const updateUser: ValidatedEventAPIGatewayProxyEvent<
     delete savedUser.password;
     return successResponse({ data: savedUser });
   } catch (error) {
-    return clientErrorResponse({ error });
+    return clientErrorResponse({ error: error || 'Returned Invalid Update' });
   }
 };
 

@@ -43,6 +43,9 @@ export class User extends BaseEntity {
   @Column({ nullable: true, type: 'varchar' })
   mobileNumber: string;
 
+  @Column({ default: 0, type: 'int' })
+  void: number;
+
   @CreateDateColumn()
   createdAt: Date;
 

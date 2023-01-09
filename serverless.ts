@@ -20,7 +20,6 @@ const serverlessConfiguration: AWS = {
       minimumCompressionSize: 1024,
       shouldStartNameWithService: true,
     },
-    iamRoleStatements: [],
     environment: {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       NODE_OPTIONS: '--enable-source-maps --stack-trace-limit=1000',
@@ -28,6 +27,31 @@ const serverlessConfiguration: AWS = {
       AURORA_SECRET_ARN: '${self:custom.auroraSecretArn.all}',
       AURORA_RESOURCE_ARN: '${self:custom.auroraResourceArn.all}',
       MYSQL_DATABASE: '${self:custom.mySqlDatabase.all}',
+    },
+    iam: {
+      role: {
+        statements: [
+          {
+            Effect: 'Allow',
+            Action: 'rds-data:*',
+            Resource: '${self:custom.auroraResourceArn.all}',
+          },
+          {
+            Effect: 'Allow',
+            Action: 'secretsmanager:GetSecretValue',
+            Resource: {
+              'Fn::Join': [
+                '',
+                [
+                  'arn:aws:secretsmanager:${self:provider.region}:',
+                  { Ref: 'AWS::AccountId' },
+                  ':secret:*',
+                ],
+              ],
+            },
+          },
+        ],
+      },
     },
   },
   // import the function via paths
